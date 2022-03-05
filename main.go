@@ -42,6 +42,7 @@ func main() {
 }
 
 func modeDownload(dir string) {
+	log.Println("computing chunked paths")
 	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
 	if err == nil {
 		var wg sync.WaitGroup
