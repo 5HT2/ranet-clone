@@ -23,13 +23,8 @@ type ImageInfo struct {
 type configOperation func(*Config)
 type Config struct {
 	Mutex      sync.Mutex  `json:"-"` // not saved in db
+	NumDone    int64       `json:"-"` // not saved in db
 	Downloaded []ImageInfo `json:"downloaded,omitempty"`
-}
-
-func AddCompletedDownload(imagePath ImageInfo) {
-	config.run(func(c *Config) {
-		c.Downloaded = append(c.Downloaded, imagePath)
-	})
 }
 
 // Config.run will modify a Config non-concurrently.
