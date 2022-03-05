@@ -6,16 +6,19 @@ import (
 	"ranet-clone/cfg"
 	"ranet-clone/dl"
 	"ranet-clone/ocr"
+	"strconv"
+	"strings"
 	"sync"
 )
 
 var (
-	baseUrl       = "https://russianplanes.net/images/"
-	baseDir       = flag.String("dir", "", "full dir path to download to, eg /raspberry/img/")
-	mode          = flag.String("mode", "download", "func to do")
-	threads       = flag.Int("threads", 4, "threads to use for downloading")
-	minImg  int64 = 100000
-	maxImg  int64 = 301605
+	baseUrl              = "https://russianplanes.net/images/"
+	baseDir              = flag.String("dir", "", "full dir path to download to, eg /raspberry/img/")
+	mode                 = flag.String("mode", "download", "func to do")
+	tessDataPrefix       = flag.String("tessdata", "/usr/share/tessdata", "path to tessdata")
+	threads              = flag.Int("threads", 4, "threads to use for downloading")
+	minImg         int64 = 100000
+	maxImg         int64 = 301605
 )
 
 func main() {
@@ -44,9 +47,18 @@ func main() {
 }
 
 func modeOcr(dir string) {
-	err := ocr.Run(dir)
-	if err != nil {
+	if err := ocr.InitClient(*tessDataPrefix); err != nil {
 		log.Fatalln(err)
+	}
+
+	for i := minImg; i <= maxImg; i++ {
+		if str, err := ocr.ProcessImage(dir, strconv.FormatInt(i, 10)+".jpg"); err != nil {
+			log.Fatalln(err)
+		} else {
+			if !strings.Contains(str, "C)") {
+				log.Printf("image text: %s\n", str)
+			}
+		}
 	}
 }
 
