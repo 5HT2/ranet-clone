@@ -1,3 +1,3 @@
-module github.com/l1ving/ranet-clone
+module ranet-clone
 
 go 1.17
