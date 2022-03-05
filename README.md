@@ -13,3 +13,10 @@ This is a tool for
 
 The website russianplanes.net was told to take down all their military aircraft listings by the Russian government.
 This project aims to archive all the images hosted on their CDN in order to make identification of aircraft easier.
+
+## TODO
+
+- [ ] Async downloading
+- [ ] Distributed hosting
+- [ ] Searching
+- [ ] OCR
