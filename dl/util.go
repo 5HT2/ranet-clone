@@ -6,13 +6,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"ranet-clone/cfg"
 	"strconv"
 )
 
 type ImagePath struct {
 	Path string `json:"path"`
 	Name string `json:"name"`
-	Size int    `json:"size"`
+	Size int64  `json:"size"`
 }
 
 // GeneratePaths generates the images sub-path in a given range.
@@ -37,15 +38,15 @@ func GeneratePaths(from, to int64) (arr []ImagePath, err error) {
 	return arr, err
 }
 
-func DownloadFile(url, path, name string) {
-	out, err := os.Create(path + name)
+func DownloadFile(p ImagePath, dir, baseURL string) {
+	out, err := os.Create(dir + p.Name)
 	defer out.Close()
 	if err != nil {
 		// if you fail to make the file, you've run out of drive space or don't have perms
 		panic(err)
 	}
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(baseURL + p.Path)
 	defer resp.Body.Close()
 
 	n, err := io.Copy(out, resp.Body)
@@ -54,4 +55,11 @@ func DownloadFile(url, path, name string) {
 		return
 	}
 	log.Printf("downloaded: %v\n", total-n)
+
+	if total-n == 0 {
+		p.Size = n
+		cfg.AddCompletedDownload(p)
+	} else {
+		panic("missing file chunks")
+	}
 }

@@ -1,4 +1,4 @@
-package config
+package cfg
 
 import (
 	"encoding/json"
@@ -19,6 +19,12 @@ type configOperation func(*Config)
 type Config struct {
 	Mutex      sync.Mutex     `json:"-"` // not saved in db
 	Downloaded []dl.ImagePath `json:"downloaded"`
+}
+
+func AddCompletedDownload(imagePath dl.ImagePath) {
+	config.run(func(c *Config) {
+		c.Downloaded = append(c.Downloaded, imagePath)
+	})
 }
 
 // Config.run will modify a Config non-concurrently.
