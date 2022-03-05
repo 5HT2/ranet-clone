@@ -3,7 +3,7 @@ package dl
 import (
 	"errors"
 	"io"
-	log "log"
+	"log"
 	"net/http"
 	"os"
 	"ranet-clone/cfg"

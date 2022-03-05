@@ -5,6 +5,7 @@ import (
 	"log"
 	"ranet-clone/cfg"
 	"ranet-clone/dl"
+	"ranet-clone/ocr"
 	"sync"
 )
 
@@ -22,7 +23,7 @@ func main() {
 
 	dir := *baseDir
 	if len(dir) == 0 {
-		log.Fatalln("*baseDir is empty")
+		log.Fatalln("-dir not set")
 	}
 
 	if dir[len(dir)-1:] != "/" {
@@ -35,8 +36,17 @@ func main() {
 	switch *mode {
 	case "download":
 		modeDownload(dir)
+	case "ocr":
+		modeOcr(dir)
 	default:
 		log.Fatalln(*mode + " is not a recognized mode")
+	}
+}
+
+func modeOcr(dir string) {
+	err := ocr.Run(dir)
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
 
