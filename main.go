@@ -50,24 +50,15 @@ func modeOcr(dir string) {
 	}
 
 	log.Println("computing chunked paths")
-	paths, err := ocr.GenerateChunkedPaths(dir, *threads)
+	paths, err := ocr.GeneratePaths(dir)
 	log.Printf("finished computing chunked paths (%v)\n", len(paths))
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	var wg sync.WaitGroup
-
-	for i := 0; i < *threads; i++ {
-		log.Printf("starting ocr thread %v\n", i)
-		wg.Add(1)
-		go ocr.ProcessImages(&wg, i, paths[i], dir)
-	}
-
-	log.Println("waiting for ocr to finish")
-	wg.Wait()
-	log.Println("finished processing ocr")
+	ocr.ProcessImages(paths, dir)
+	cfg.SaveConfig()
 }
 
 func modeDownload(dir string) {
@@ -90,4 +81,5 @@ func modeDownload(dir string) {
 	log.Println("waiting for downloads to finish")
 	wg.Wait()
 	log.Println("finished downloading")
+	cfg.SaveConfig()
 }

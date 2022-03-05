@@ -11,30 +11,25 @@ import (
 	"log"
 	"ranet-clone/cfg"
 	"ranet-clone/threads"
-	"sync"
 )
 
 var (
-	clients []gosseract.Client
+	client gosseract.Client
 )
 
 func InitClient(tessDataPrefix string, nThreads int) error {
-	clients = make([]gosseract.Client, nThreads)
+	client = *gosseract.NewClient()
+	client.TessdataPrefix = tessDataPrefix
+	err := client.SetLanguage([]string{"eng"}...)
 
-	for i := 0; i < nThreads; i++ {
-		clients[i] = *gosseract.NewClient()
-		clients[i].TessdataPrefix = tessDataPrefix
-		err := clients[i].SetLanguage([]string{"eng"}...)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func GenerateChunkedPaths(dir string, nThreads int) ([][]cfg.ImageInfo, error) {
+func GeneratePaths(dir string) ([]cfg.ImageInfo, error) {
 	files := threads.GetFiles(dir)
 	arr := make([]cfg.ImageInfo, 0)
 
@@ -44,26 +39,25 @@ func GenerateChunkedPaths(dir string, nThreads int) ([][]cfg.ImageInfo, error) {
 		}
 	}
 
-	return threads.ChunkSlice(arr, len(arr)/nThreads), nil
+	return arr, nil
 }
 
-func ProcessImages(wg *sync.WaitGroup, thread int, p []cfg.ImageInfo, dir string) {
+func ProcessImages(p []cfg.ImageInfo, dir string) {
 	defer threads.LogPanic()
-	defer wg.Done()
-	defer log.Printf("done ocr thread %v\n", thread)
 
-	log.Printf("thread %v will process %v images\n", thread, len(p))
+	log.Printf("will process %v images\n", len(p))
 	for _, i := range p {
 		if cfg.InOcrQueue(i) || len(i.OcrData) > 0 {
 			continue
 		}
 
 		cfg.AddToOcrQueue(i)
-		if str, err := ProcessImage(dir, i.Name, thread); err != nil {
+		if str, err := ProcessImage(dir, i.Name); err != nil {
 			log.Printf("error processing %s: %v\n", i.Name, err)
 		} else {
 			cfg.UpdateOcrData(i, str)
 		}
+
 		cfg.RemoveFromOcrQueue(i)
 	}
 }
@@ -82,18 +76,18 @@ func (m *ModifiableImage) At(x, y int) color.Color {
 	return color.Gray16{Y: c.Y}
 }
 
-func ProcessImage(dir, name string, thread int) (string, error) {
+func ProcessImage(dir, name string) (string, error) {
 	data, err := GetImageBytes(dir, name)
 	if err != nil {
 		return "", err
 	}
 
-	err = clients[thread].SetImageFromBytes(data)
+	err = client.SetImageFromBytes(data)
 	if err != nil {
 		return "", err
 	}
 
-	return clients[thread].Text()
+	return client.Text()
 }
 
 func GetImageBytes(dir, name string) ([]byte, error) {
