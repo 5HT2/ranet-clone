@@ -10,7 +10,7 @@ import (
 
 var (
 	config     Config
-	configPath = "config2.json"
+	configPath = "config.json"
 	fileMode   = os.FileMode(0700)
 )
 
