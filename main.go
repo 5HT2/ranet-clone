@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"ranet-clone/config"
 	"ranet-clone/dl"
 )
 
@@ -22,6 +23,9 @@ func main() {
 	if dir[len(dir)-1:] != "/" {
 		dir += "/"
 	}
+
+	config.LoadConfig()
+	go config.SetupConfigSaving()
 
 	paths, err := dl.GeneratePaths(100000, 100002)
 	if err == nil {
