@@ -20,10 +20,11 @@ func UpdateNumDownloaded(num int64, set bool) {
 
 func UpdateOcrData(i ImageInfo, str string) {
 	config.run(func(c *Config) {
-		for _, n := range c.Downloaded {
+		for p, n := range c.Downloaded {
 			if n.Name == i.Name {
 				log.Printf("processed %s (%s)\n", i.Name, str)
 				n.OcrData = str
+				c.Downloaded[p] = n
 				break
 			}
 		}
