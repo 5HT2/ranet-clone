@@ -34,26 +34,26 @@ func main() {
 	cfg.LoadConfig()
 	go cfg.SetupConfigSaving()
 
-	log.Println("computing chunked paths")
-	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
-	log.Printf("finished computing chunked paths (%v)\n", len(paths))
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	switch *mode {
 	case "download":
-		modeDownload(dir, paths)
+		modeDownload(dir)
 	case "ocr":
-		modeOcr(dir, paths)
+		modeOcr(dir)
 	default:
 		log.Fatalln(*mode + " is not a recognized mode")
 	}
 }
 
-func modeOcr(dir string, paths [][]cfg.ImageInfo) {
-	if err := ocr.InitClient(*tessDataPrefix); err != nil {
+func modeOcr(dir string) {
+	if err := ocr.InitClient(*tessDataPrefix, *threads); err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("computing chunked paths")
+	paths, err := ocr.GenerateChunkedPaths(dir, *threads)
+	log.Printf("finished computing chunked paths (%v)\n", len(paths))
+
+	if err != nil {
 		log.Fatalln(err)
 	}
 
@@ -70,7 +70,15 @@ func modeOcr(dir string, paths [][]cfg.ImageInfo) {
 	log.Println("finished processing ocr")
 }
 
-func modeDownload(dir string, paths [][]cfg.ImageInfo) {
+func modeDownload(dir string) {
+	log.Println("computing chunked paths")
+	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
+	log.Printf("finished computing chunked paths (%v)\n", len(paths))
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	var wg sync.WaitGroup
 
 	for i := 0; i < *threads; i++ {

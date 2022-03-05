@@ -12,13 +12,13 @@ import (
 	"sync"
 )
 
-func GenerateChunkedPaths(dir string, threads int, from, to int64) ([][]cfg.ImageInfo, error) {
+func GenerateChunkedPaths(dir string, nThreads int, from, to int64) ([][]cfg.ImageInfo, error) {
 	arr, err := GeneratePaths(dir, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	return chunkSlice(arr, len(arr)/threads), nil
+	return threads.ChunkSlice(arr, len(arr)/nThreads), nil
 }
 
 // GeneratePaths generates the images sub-path in a given range.
@@ -33,7 +33,7 @@ func GeneratePaths(dir string, from, to int64) (arr []cfg.ImageInfo, err error) 
 		return arr, errors.New("to or from outside of range (100000-301605)")
 	}
 
-	files := getFiles(dir)
+	files := threads.GetFiles(dir)
 
 	for i := from; i <= to; i++ {
 		dir := strconv.FormatInt(i+(1000-i%1000), 10)
@@ -108,19 +108,6 @@ func DownloadFile(p cfg.ImageInfo, dir, baseUrl string) {
 	}
 }
 
-func getFiles(dir string) []os.FileInfo {
-	f, err := os.Open(dir)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	files, err := f.Readdir(0)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return files
-}
-
 func contains(s []os.FileInfo, e string) bool {
 	for _, a := range s {
 		if a.Name() == e {
@@ -128,21 +115,4 @@ func contains(s []os.FileInfo, e string) bool {
 		}
 	}
 	return false
-}
-
-func chunkSlice(slice []cfg.ImageInfo, chunkSize int) [][]cfg.ImageInfo {
-	var chunks [][]cfg.ImageInfo
-	for i := 0; i < len(slice); i += chunkSize {
-		end := i + chunkSize
-
-		// necessary check to avoid slicing beyond
-		// slice capacity
-		if end > len(slice) {
-			end = len(slice)
-		}
-
-		chunks = append(chunks, slice[i:end])
-	}
-
-	return chunks
 }

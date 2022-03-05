@@ -15,19 +15,36 @@ import (
 )
 
 var (
-	client gosseract.Client
+	clients []gosseract.Client
 )
 
-func InitClient(tessDataPrefix string) error {
-	client = *gosseract.NewClient()
-	client.TessdataPrefix = tessDataPrefix
+func InitClient(tessDataPrefix string, nThreads int) error {
+	clients = make([]gosseract.Client, nThreads)
 
-	err := client.SetLanguage([]string{"eng"}...)
-	if err != nil {
-		return err
+	for i := 0; i < nThreads; i++ {
+		clients[i] = *gosseract.NewClient()
+		clients[i].TessdataPrefix = tessDataPrefix
+		err := clients[i].SetLanguage([]string{"eng"}...)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func GenerateChunkedPaths(dir string, nThreads int) ([][]cfg.ImageInfo, error) {
+	files := threads.GetFiles(dir)
+	arr := make([]cfg.ImageInfo, 0)
+
+	for _, f := range files {
+		if !f.IsDir() {
+			arr = append(arr, cfg.ImageInfo{Name: f.Name()})
+		}
+	}
+
+	return threads.ChunkSlice(arr, len(arr)/nThreads), nil
 }
 
 func ProcessImages(wg *sync.WaitGroup, thread int, p []cfg.ImageInfo, dir string) {
@@ -42,7 +59,7 @@ func ProcessImages(wg *sync.WaitGroup, thread int, p []cfg.ImageInfo, dir string
 		}
 
 		cfg.AddToOcrQueue(i)
-		if str, err := ProcessImage(dir, i.Name); err != nil {
+		if str, err := ProcessImage(dir, i.Name, thread); err != nil {
 			log.Printf("error processing %s: %v\n", i.Name, err)
 		} else {
 			cfg.UpdateOcrData(i, str)
@@ -65,19 +82,18 @@ func (m *ModifiableImage) At(x, y int) color.Color {
 	return color.Gray16{Y: c.Y}
 }
 
-func ProcessImage(dir, name string) (string, error) {
+func ProcessImage(dir, name string, thread int) (string, error) {
 	data, err := GetImageBytes(dir, name)
 	if err != nil {
 		return "", err
 	}
 
-	err = client.SetImageFromBytes(data)
+	err = clients[thread].SetImageFromBytes(data)
 	if err != nil {
 		return "", err
 	}
 
-	out, err := client.Text()
-	return out, err
+	return clients[thread].Text()
 }
 
 func GetImageBytes(dir, name string) ([]byte, error) {
