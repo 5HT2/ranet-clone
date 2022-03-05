@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"ranet-clone/cfg"
 	"ranet-clone/dl"
@@ -44,18 +43,20 @@ func main() {
 func modeDownload(dir string) {
 	log.Println("computing chunked paths")
 	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
+	log.Printf("finished computing chunked paths (%v)\n", len(paths))
+
 	if err == nil {
 		var wg sync.WaitGroup
 
 		for i := 0; i < *threads; i++ {
-			fmt.Println("starting download thread " + string(rune(i)))
+			log.Printf("starting download thread %v\n", i)
 			wg.Add(1)
-			go dl.DownloadFiles(&wg, paths[i], dir, baseUrl)
+			go dl.DownloadFiles(&wg, i, paths[i], dir, baseUrl)
 		}
 
-		fmt.Println("waiting for downloads to finish")
+		log.Println("waiting for downloads to finish")
 		wg.Wait()
-		fmt.Println("finished downloading")
+		log.Println("finished downloading")
 	} else {
 		log.Fatalln(err.Error())
 	}
