@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"ranet-clone/dl"
 	"sync"
 	"time"
 )
@@ -15,13 +14,19 @@ var (
 	fileMode   = os.FileMode(0700)
 )
 
-type configOperation func(*Config)
-type Config struct {
-	Mutex      sync.Mutex     `json:"-"` // not saved in db
-	Downloaded []dl.ImagePath `json:"downloaded"`
+type ImageInfo struct {
+	Path string `json:"path"`
+	Name string `json:"name"`
+	Size int64  `json:"size"`
 }
 
-func AddCompletedDownload(imagePath dl.ImagePath) {
+type configOperation func(*Config)
+type Config struct {
+	Mutex      sync.Mutex  `json:"-"` // not saved in db
+	Downloaded []ImageInfo `json:"downloaded"`
+}
+
+func AddCompletedDownload(imagePath ImageInfo) {
 	config.run(func(c *Config) {
 		c.Downloaded = append(c.Downloaded, imagePath)
 	})

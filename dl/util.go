@@ -10,16 +10,10 @@ import (
 	"strconv"
 )
 
-type ImagePath struct {
-	Path string `json:"path"`
-	Name string `json:"name"`
-	Size int64  `json:"size"`
-}
-
 // GeneratePaths generates the images sub-path in a given range.
 // For example, 100000-100002 will produce [to101000/100000.jpg, to101000/100001.jpg, to101000/100002.jpg].
 // The first image is 100000, and the last image is 301605.
-func GeneratePaths(from, to int64) (arr []ImagePath, err error) {
+func GeneratePaths(from, to int64) (arr []cfg.ImageInfo, err error) {
 	if to < from {
 		return arr, errors.New("to cannot be less than from")
 	}
@@ -32,13 +26,13 @@ func GeneratePaths(from, to int64) (arr []ImagePath, err error) {
 		dir := strconv.FormatInt(i+(1000-i%1000), 10)
 		img := strconv.FormatInt(i, 10) + ".jpg"
 
-		arr = append(arr, ImagePath{"to" + dir + "/" + img, img, 0})
+		arr = append(arr, cfg.ImageInfo{Path: "to" + dir + "/" + img, Name: img})
 	}
 
 	return arr, err
 }
 
-func DownloadFile(p ImagePath, dir, baseURL string) {
+func DownloadFile(p cfg.ImageInfo, dir, baseURL string) {
 	out, err := os.Create(dir + p.Name)
 	defer out.Close()
 	if err != nil {
