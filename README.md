@@ -16,7 +16,7 @@ This project aims to archive all the images hosted on their CDN in order to make
 
 ## TODO
 
-- [ ] Async downloading
+- [x] Async downloading
 - [ ] Distributed hosting
 - [ ] Searching
 - [ ] OCR
