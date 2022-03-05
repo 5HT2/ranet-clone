@@ -23,7 +23,7 @@ type ImageInfo struct {
 type configOperation func(*Config)
 type Config struct {
 	Mutex      sync.Mutex  `json:"-"` // not saved in db
-	Downloaded []ImageInfo `json:"downloaded"`
+	Downloaded []ImageInfo `json:"downloaded,omitempty"`
 }
 
 func AddCompletedDownload(imagePath ImageInfo) {
