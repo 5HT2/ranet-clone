@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"ranet-clone/cfg"
 	"ranet-clone/dl"
 	"ranet-clone/ocr"
+	threads2 "ranet-clone/threads"
 	"sync"
 )
 
@@ -31,7 +33,7 @@ func main() {
 		dir += "/"
 	}
 
-	cfg.LoadConfig()
+	cfg.LoadConfig(dir)
 	go cfg.SetupConfigSaving()
 
 	switch *mode {
@@ -42,8 +44,22 @@ func main() {
 		modeDownload(dir)
 	case "ocr":
 		modeOcr(dir)
+	case "cleanup":
+		modeCleanup(dir)
 	default:
 		log.Fatalln(*mode + " is not a recognized mode")
+	}
+}
+
+func modeCleanup(dir string) {
+	for _, f := range threads2.GetFiles(dir) {
+		if f.Size() == 0 {
+			log.Printf("removing 0 bytes file: %s\n", f.Name())
+			err := os.Remove(dir + f.Name())
+			if err != nil {
+				log.Printf("error removing file: %v\n", err)
+			}
+		}
 	}
 }
 
