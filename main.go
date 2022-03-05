@@ -27,7 +27,7 @@ func main() {
 	cfg.LoadConfig()
 	go cfg.SetupConfigSaving()
 
-	paths, err := dl.GeneratePaths(100000, 100002)
+	paths, err := dl.GeneratePaths(100000, 301605)
 	if err == nil {
 		for _, p := range paths {
 			log.Println("downloading " + dir + p.Path)
