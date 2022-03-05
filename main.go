@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	baseURL       = "https://russianplanes.net/images/"
+	baseUrl       = "https://russianplanes.net/images/"
 	baseDir       = flag.String("dir", "", "full dir path to download to, eg /raspberry/img/")
 	mode          = flag.String("mode", "download", "func to do")
 	threads       = flag.Int("threads", 4, "threads to use for downloading")
@@ -44,7 +44,7 @@ func modeDownload(dir string) {
 	if err == nil {
 		for _, p := range paths {
 			log.Println("downloading " + dir + p.Path)
-			dl.DownloadFile(p, dir, baseURL)
+			dl.DownloadFile(p, dir, baseUrl)
 		}
 	} else {
 		log.Fatalln(err.Error())

@@ -37,26 +37,36 @@ func GeneratePaths(dir string, from, to int64) (arr []cfg.ImageInfo, err error) 
 	return arr, err
 }
 
-func DownloadFile(p cfg.ImageInfo, dir, baseURL string) {
+func DownloadFiles(p []cfg.ImageInfo, dir, baseUrl string) {
+	for _, i := range p {
+		if cfg.InQueue(i) {
+			continue
+		}
+
+		cfg.AddToQueue(i)
+		DownloadFile(i, dir, baseUrl)
+		cfg.RemoveFromQueue(i)
+	}
+}
+
+func DownloadFile(p cfg.ImageInfo, dir, baseUrl string) {
 	out, err := os.Create(dir + p.Name)
 	defer out.Close()
 	if err != nil {
 		// if you fail to make the file, you've run out of drive space or don't have perms
-		panic(err)
+		log.Println("failed to make file " + p.Name)
 	}
 
-	resp, err := http.Get(baseURL + p.Path)
+	resp, err := http.Get(baseUrl + p.Path)
 	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err)
-		return
 	}
 
 	n, err := io.Copy(out, resp.Body)
 	total, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
 		log.Println(err)
-		return
 	}
 
 	log.Printf("downloaded: %v\n", total-n)
@@ -66,7 +76,7 @@ func DownloadFile(p cfg.ImageInfo, dir, baseURL string) {
 		cfg.AddCompletedDownload(p)
 		cfg.UpdateNumDownloaded(1, false)
 	} else {
-		panic("missing file chunks")
+		log.Printf("missing file chunks for " + p.Name)
 	}
 }
 

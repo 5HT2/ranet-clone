@@ -24,6 +24,7 @@ type configOperation func(*Config)
 type Config struct {
 	Mutex      sync.Mutex  `json:"-"` // not saved in db
 	NumDone    int64       `json:"-"` // not saved in db
+	Queue      []ImageInfo `json:"-"` // not saved in db
 	Downloaded []ImageInfo `json:"downloaded,omitempty"`
 }
 
