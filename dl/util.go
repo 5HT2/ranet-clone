@@ -42,12 +42,18 @@ func DownloadFile(p cfg.ImageInfo, dir, baseURL string) {
 
 	resp, err := http.Get(baseURL + p.Path)
 	defer resp.Body.Close()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	n, err := io.Copy(out, resp.Body)
 	total, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
+		log.Println(err)
 		return
 	}
+
 	log.Printf("downloaded: %v\n", total-n)
 
 	if total-n == 0 {
