@@ -71,10 +71,15 @@ func SaveConfig() {
 	}
 }
 
-func LoadConfig() {
+func LoadConfig(dir string) {
 	bytes, err := os.ReadFile(configPath)
 	if err != nil {
-		log.Fatalf("error loading config: %v\n", err)
+		bytes, err = os.ReadFile(dir + configPath)
+		if err != nil {
+			log.Fatalf("error loading config: %v\n", err)
+		} else {
+			configPath = dir + configPath
+		}
 	}
 
 	if err := json.Unmarshal(bytes, &config); err != nil {

@@ -20,14 +20,16 @@ This project aims to archive all the images hosted on their CDN in order to make
 git clone https://github.com/l1ving/ranet-clone
 cd ranet-clone
 
-echo "{}" > config.json
-go build -o ranet .
-
 # Make the dir first
 RANET_DATA=/path/to/images/dir
+echo "{}" > "$RANET_DATA/config.json"
 
+#
 # Run directly
+go build -o ranet .
 ./ranet -dir $RANET_DATA -threads 4
+
+#
 # Or, run via Docker
 docker build -t ranet .
 docker run --name ranet --mount type=bind,source="$RANET_DATA",target=/ranet-data --network host -d MODE=all THREADS=4 ranet
