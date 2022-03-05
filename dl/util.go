@@ -3,12 +3,23 @@ package dl
 import (
 	"errors"
 	"io"
-	"log"
+	log "log"
 	"net/http"
 	"os"
 	"ranet-clone/cfg"
+	"runtime/debug"
 	"strconv"
+	"sync"
 )
+
+func GenerateChunkedPaths(dir string, threads int, from, to int64) ([][]cfg.ImageInfo, error) {
+	arr, err := GeneratePaths(dir, from, to)
+	if err != nil {
+		return nil, err
+	}
+
+	return chunkSlice(arr, threads), nil
+}
 
 // GeneratePaths generates the images sub-path in a given range.
 // For example, 100000-100002 will produce [to101000/100000.jpg, to101000/100001.jpg, to101000/100002.jpg].
@@ -37,7 +48,10 @@ func GeneratePaths(dir string, from, to int64) (arr []cfg.ImageInfo, err error) 
 	return arr, err
 }
 
-func DownloadFiles(p []cfg.ImageInfo, dir, baseUrl string) {
+func DownloadFiles(wg *sync.WaitGroup, p []cfg.ImageInfo, dir, baseUrl string) {
+	defer logPanic()
+	defer wg.Done()
+
 	for _, i := range p {
 		if cfg.InQueue(i) {
 			continue
@@ -69,7 +83,7 @@ func DownloadFile(p cfg.ImageInfo, dir, baseUrl string) {
 		log.Println(err)
 	}
 
-	log.Printf("downloaded: %v\n", total-n)
+	log.Printf("downloaded: %s (%vB missing)\n", p.Name, total-n)
 
 	if total-n == 0 {
 		p.Size = n
@@ -100,4 +114,28 @@ func contains(s []os.FileInfo, e string) bool {
 		}
 	}
 	return false
+}
+
+func chunkSlice(slice []cfg.ImageInfo, chunkSize int) [][]cfg.ImageInfo {
+	var chunks [][]cfg.ImageInfo
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
+}
+
+func logPanic() {
+	if x := recover(); x != nil {
+		// recovering from a panic; x contains whatever was passed to panic()
+		log.Printf("panic: %s\n", debug.Stack())
+	}
 }

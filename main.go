@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"ranet-clone/cfg"
 	"ranet-clone/dl"
+	"sync"
 )
 
 var (
@@ -40,12 +42,19 @@ func main() {
 }
 
 func modeDownload(dir string) {
-	paths, err := dl.GeneratePaths(dir, minImg, maxImg)
+	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
 	if err == nil {
-		for _, p := range paths {
-			log.Println("downloading " + dir + p.Path)
-			dl.DownloadFile(p, dir, baseUrl)
+		var wg sync.WaitGroup
+
+		for i := 0; i < *threads; i++ {
+			fmt.Println("starting download thread " + string(rune(i)))
+			wg.Add(1)
+			go dl.DownloadFiles(&wg, paths[i], dir, baseUrl)
 		}
+
+		fmt.Println("waiting for downloads to finish")
+		wg.Wait()
+		fmt.Println("finished downloading")
 	} else {
 		log.Fatalln(err.Error())
 	}
