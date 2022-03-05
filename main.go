@@ -12,7 +12,7 @@ import (
 var (
 	baseUrl              = "https://russianplanes.net/images/"
 	baseDir              = flag.String("dir", "", "full dir path to download to, eg /raspberry/img/")
-	mode                 = flag.String("mode", "download", "func to do")
+	mode                 = flag.String("mode", "all", "func to do")
 	tessDataPrefix       = flag.String("tessdata", "/usr/share/tessdata", "path to tessdata")
 	threads              = flag.Int("threads", 4, "threads to use for downloading")
 	minImg         int64 = 100000
@@ -35,6 +35,9 @@ func main() {
 	go cfg.SetupConfigSaving()
 
 	switch *mode {
+	case "all":
+		modeDownload(dir)
+		modeOcr(dir)
 	case "download":
 		modeDownload(dir)
 	case "ocr":

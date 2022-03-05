@@ -24,7 +24,13 @@ echo "{}" > config.json
 go build -o ranet .
 
 # Make the dir first
-./ranet -dir /path/to/images/dir -threads 4
+RANET_DATA=/path/to/images/dir
+
+# Run directly
+./ranet -dir $RANET_DATA -threads 4
+# Or, run via Docker
+docker build -t ranet .
+docker run --name ranet --mount type=bind,source="$RANET_DATA",target=/ranet-data --network host -d MODE=all THREADS=4 ranet
 ```
 
 ## TODO
