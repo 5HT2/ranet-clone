@@ -6,8 +6,6 @@ import (
 	"ranet-clone/cfg"
 	"ranet-clone/dl"
 	"ranet-clone/ocr"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -36,50 +34,52 @@ func main() {
 	cfg.LoadConfig()
 	go cfg.SetupConfigSaving()
 
+	log.Println("computing chunked paths")
+	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
+	log.Printf("finished computing chunked paths (%v)\n", len(paths))
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	switch *mode {
 	case "download":
-		modeDownload(dir)
+		modeDownload(dir, paths)
 	case "ocr":
-		modeOcr(dir)
+		modeOcr(dir, paths)
 	default:
 		log.Fatalln(*mode + " is not a recognized mode")
 	}
 }
 
-func modeOcr(dir string) {
+func modeOcr(dir string, paths [][]cfg.ImageInfo) {
 	if err := ocr.InitClient(*tessDataPrefix); err != nil {
 		log.Fatalln(err)
 	}
 
-	for i := minImg; i <= maxImg; i++ {
-		if str, err := ocr.ProcessImage(dir, strconv.FormatInt(i, 10)+".jpg"); err != nil {
-			log.Fatalln(err)
-		} else {
-			if !strings.Contains(str, "C)") {
-				log.Printf("image text: %s\n", str)
-			}
-		}
+	var wg sync.WaitGroup
+
+	for i := 0; i < *threads; i++ {
+		log.Printf("starting ocr thread %v\n", i)
+		wg.Add(1)
+		go ocr.ProcessImages(&wg, i, paths[i], dir)
 	}
+
+	log.Println("waiting for ocr to finish")
+	wg.Wait()
+	log.Println("finished processing ocr")
 }
 
-func modeDownload(dir string) {
-	log.Println("computing chunked paths")
-	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
-	log.Printf("finished computing chunked paths (%v)\n", len(paths))
+func modeDownload(dir string, paths [][]cfg.ImageInfo) {
+	var wg sync.WaitGroup
 
-	if err == nil {
-		var wg sync.WaitGroup
-
-		for i := 0; i < *threads; i++ {
-			log.Printf("starting download thread %v\n", i)
-			wg.Add(1)
-			go dl.DownloadFiles(&wg, i, paths[i], dir, baseUrl)
-		}
-
-		log.Println("waiting for downloads to finish")
-		wg.Wait()
-		log.Println("finished downloading")
-	} else {
-		log.Fatalln(err.Error())
+	for i := 0; i < *threads; i++ {
+		log.Printf("starting download thread %v\n", i)
+		wg.Add(1)
+		go dl.DownloadFiles(&wg, i, paths[i], dir, baseUrl)
 	}
+
+	log.Println("waiting for downloads to finish")
+	wg.Wait()
+	log.Println("finished downloading")
 }

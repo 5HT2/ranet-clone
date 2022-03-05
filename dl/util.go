@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"ranet-clone/cfg"
-	"runtime/debug"
+	"ranet-clone/threads"
 	"strconv"
 	"sync"
 )
@@ -49,19 +49,19 @@ func GeneratePaths(dir string, from, to int64) (arr []cfg.ImageInfo, err error) 
 }
 
 func DownloadFiles(wg *sync.WaitGroup, thread int, p []cfg.ImageInfo, dir, baseUrl string) {
-	defer logPanic()
+	defer threads.LogPanic()
 	defer wg.Done()
 	defer log.Printf("done thread %v\n", thread)
 
 	log.Printf("thread %v will download %v files\n", thread, len(p))
 	for _, i := range p {
-		if cfg.InQueue(i) {
+		if cfg.InDlQueue(i) {
 			continue
 		}
 
-		cfg.AddToQueue(i)
+		cfg.AddToDlQueue(i)
 		DownloadFile(i, dir, baseUrl)
-		cfg.RemoveFromQueue(i)
+		cfg.RemoveFromDlQueue(i)
 	}
 }
 
@@ -145,11 +145,4 @@ func chunkSlice(slice []cfg.ImageInfo, chunkSize int) [][]cfg.ImageInfo {
 	}
 
 	return chunks
-}
-
-func logPanic() {
-	if x := recover(); x != nil {
-		// recovering from a panic; x contains whatever was passed to panic()
-		log.Printf("panic: %s\n", debug.Stack())
-	}
 }

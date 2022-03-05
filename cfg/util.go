@@ -10,21 +10,23 @@ import (
 
 var (
 	config     Config
-	configPath = "config.json"
+	configPath = "config2.json"
 	fileMode   = os.FileMode(0700)
 )
 
 type ImageInfo struct {
-	Path string `json:"path"`
-	Name string `json:"name"`
-	Size int64  `json:"size"`
+	Path    string `json:"path"`
+	Name    string `json:"name"`
+	Size    int64  `json:"size"`
+	OcrData string `json:"ocr_data"`
 }
 
 type configOperation func(*Config)
 type Config struct {
 	Mutex      sync.Mutex  `json:"-"` // not saved in db
 	NumDone    int64       `json:"-"` // not saved in db
-	Queue      []ImageInfo `json:"-"` // not saved in db
+	DlQueue    []ImageInfo `json:"-"` // not saved in db
+	OcrQueue   []ImageInfo `json:"-"` // not saved in db
 	Downloaded []ImageInfo `json:"downloaded,omitempty"`
 }
 
@@ -42,7 +44,7 @@ func SetupConfigSaving() {
 		for {
 			select {
 			case <-ticker.C:
-				SaveConfig()
+				//SaveConfig()
 			}
 		}
 	}()

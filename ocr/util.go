@@ -8,6 +8,10 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"log"
+	"ranet-clone/cfg"
+	"ranet-clone/threads"
+	"sync"
 )
 
 var (
@@ -24,6 +28,27 @@ func InitClient(tessDataPrefix string) error {
 	}
 
 	return nil
+}
+
+func ProcessImages(wg *sync.WaitGroup, thread int, p []cfg.ImageInfo, dir string) {
+	defer threads.LogPanic()
+	defer wg.Done()
+	defer log.Printf("done ocr thread %v\n", thread)
+
+	log.Printf("thread %v will process %v images\n", thread, len(p))
+	for _, i := range p {
+		if cfg.InOcrQueue(i) || len(i.OcrData) > 0 {
+			continue
+		}
+
+		cfg.AddToOcrQueue(i)
+		if str, err := ProcessImage(dir, i.Name); err != nil {
+			log.Printf("error processing %s: %v\n", i.Name, err)
+		} else {
+			cfg.UpdateOcrData(i, str)
+		}
+		cfg.RemoveFromOcrQueue(i)
+	}
 }
 
 type ModifiableImage struct {
