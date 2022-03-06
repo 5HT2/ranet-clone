@@ -39,6 +39,7 @@ func main() {
 	switch *mode {
 	case "all":
 		modeDownload(dir)
+		modeCleanup(dir)
 		modeOcr(dir)
 	case "download":
 		modeDownload(dir)
