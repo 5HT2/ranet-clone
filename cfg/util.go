@@ -44,7 +44,7 @@ func SetupConfigSaving() {
 		for {
 			select {
 			case <-ticker.C:
-				//SaveConfig()
+				SaveConfig()
 			}
 		}
 	}()
