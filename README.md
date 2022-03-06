@@ -32,7 +32,7 @@ go build -o ranet .
 #
 # Or, run via Docker
 docker build -t ranet .
-docker run --name ranet --mount type=bind,source="$RANET_DATA",target=/ranet-data --network host -d MODE=all THREADS=4 ranet
+docker run --name ranet --mount type=bind,source="$RANET_DATA",target=/ranet-data --network host -d -e MODE=all -e THREADS=4 ranet
 ```
 
 ## TODO
