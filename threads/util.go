@@ -7,6 +7,11 @@ import (
 	"runtime/debug"
 )
 
+var (
+	MinImg int64 = 1
+	MaxImg int64 = 301691
+)
+
 func LogPanic() {
 	if x := recover(); x != nil {
 		// recovering from a panic; x contains whatever was passed to panic()

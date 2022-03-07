@@ -12,13 +12,11 @@ import (
 )
 
 var (
-	baseUrl              = "https://russianplanes.net/images/"
-	baseDir              = flag.String("dir", "", "full dir path to download to, eg /raspberry/img/")
-	mode                 = flag.String("mode", "all", "func to do")
-	tessDataPrefix       = flag.String("tessdata", "/usr/share/tessdata", "path to tessdata")
-	threads              = flag.Int("threads", 4, "threads to use for downloading")
-	minImg         int64 = 100000
-	maxImg         int64 = 301605
+	baseUrl        = "https://russianplanes.net/images/"
+	baseDir        = flag.String("dir", "", "full dir path to download to, eg /raspberry/img/")
+	mode           = flag.String("mode", "all", "func to do")
+	tessDataPrefix = flag.String("tessdata", "/usr/share/tessdata", "path to tessdata")
+	threads        = flag.Int("threads", 4, "threads to use for downloading")
 )
 
 func main() {
@@ -83,7 +81,7 @@ func modeOcr(dir string) {
 
 func modeDownload(dir string) {
 	log.Println("computing chunked paths")
-	paths, err := dl.GenerateChunkedPaths(dir, *threads, minImg, maxImg)
+	paths, err := dl.GenerateChunkedPaths(dir, *threads)
 	log.Printf("finished computing chunked paths (%v)\n", len(paths))
 
 	if err != nil {

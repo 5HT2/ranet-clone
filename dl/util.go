@@ -2,6 +2,7 @@ package dl
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,8 +13,8 @@ import (
 	"sync"
 )
 
-func GenerateChunkedPaths(dir string, nThreads int, from, to int64) ([][]cfg.ImageInfo, error) {
-	arr, err := GeneratePaths(dir, from, to)
+func GenerateChunkedPaths(dir string, nThreads int) ([][]cfg.ImageInfo, error) {
+	arr, err := GeneratePaths(dir, threads.MinImg, threads.MaxImg)
 	if err != nil {
 		return nil, err
 	}
@@ -22,22 +23,22 @@ func GenerateChunkedPaths(dir string, nThreads int, from, to int64) ([][]cfg.Ima
 }
 
 // GeneratePaths generates the images sub-path in a given range.
-// For example, 100000-100002 will produce [to101000/100000.jpg, to101000/100001.jpg, to101000/100002.jpg].
-// The first image is 100000, and the last image is 301605.
+// For example, 999-1001 will produce [to1000/000999.jpg, to1000/001000.jpg, to1000/001001.jpg].
+// The first image is 1, and the last image is 301691.
 func GeneratePaths(dir string, from, to int64) (arr []cfg.ImageInfo, err error) {
 	if to < from {
 		return arr, errors.New("to cannot be less than from")
 	}
 
-	if from < 100000 || to > 301605 {
-		return arr, errors.New("to or from outside of range (100000-301605)")
+	if from < threads.MinImg || to > threads.MaxImg {
+		return arr, errors.New("to or from outside of range (" + strconv.FormatInt(threads.MinImg, 10) + "-" + strconv.FormatInt(threads.MaxImg, 10) + ")")
 	}
 
 	files := threads.GetFiles(dir)
 
 	for i := from; i <= to; i++ {
 		dir := strconv.FormatInt(i+(1000-i%1000), 10)
-		img := strconv.FormatInt(i, 10) + ".jpg"
+		img := fmt.Sprintf("%06d", i) + ".jpg"
 
 		if !contains(files, img) {
 			arr = append(arr, cfg.ImageInfo{Path: "to" + dir + "/" + img, Name: img})
