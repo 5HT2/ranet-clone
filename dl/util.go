@@ -67,6 +67,18 @@ func DownloadFiles(wg *sync.WaitGroup, thread int, p []cfg.ImageInfo, dir, baseU
 }
 
 func DownloadFile(p cfg.ImageInfo, dir, baseUrl string) {
+	resp, err := http.Get(baseUrl + p.Path)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	if resp.StatusCode != 200 {
+		log.Printf("status %v returned for %s\n", resp.StatusCode, p.Name)
+		return
+	}
+
 	out, err := os.Create(dir + p.Name)
 	defer out.Close()
 	if err != nil {
@@ -75,20 +87,9 @@ func DownloadFile(p cfg.ImageInfo, dir, baseUrl string) {
 		return
 	}
 
-	resp, err := http.Get(baseUrl + p.Path)
-	defer resp.Body.Close()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	n, err := io.Copy(out, resp.Body)
 	if err != nil {
 		log.Println(err)
-		return
-	}
-	if resp.StatusCode != 200 {
-		log.Printf("status %v returned for %s\n", resp.StatusCode, p.Name)
 		return
 	}
 
