@@ -2,6 +2,8 @@
 
 A searchable clone of russianplanes.net, for transparency and ease of identifying planes.
 
+A torrent of the (partial) dataset is available [here](https://the-eye.eu/public/Random/torrents/russianaircraft.net_images.tar.torrent).
+
 ## What is this?
 
 This is a tool for
@@ -38,6 +40,6 @@ docker run --name ranet --mount type=bind,source="$RANET_DATA",target=/ranet-dat
 ## TODO
 
 - [x] Async downloading
-- [ ] Distributed hosting
+- [x] Distributed hosting
 - [ ] Searching
 - [x] OCR
