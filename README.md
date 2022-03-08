@@ -19,7 +19,7 @@ This project aims to archive all the images hosted on their CDN in order to make
 ## Usage
 
 ```bash
-git clone https://github.com/l1ving/ranet-clone
+git clone https://github.com/5HT2/ranet-clone
 cd ranet-clone
 
 # Make the dir first
