@@ -2,7 +2,7 @@
 
 A searchable clone of russianplanes.net, for transparency and ease of identifying planes.
 
-A torrent of the (partial) dataset is available [here](https://the-eye.eu/public/Random/torrents/russianaircraft.net_images.tar.torrent).
+A torrent of the (partial) dataset is available [here](https://the-eye.eu/public/Random/torrents/russianaircraft.net_images.tar.torrent), with a tarball being available [here](https://the-eye.eu/public/Random/russianaircraft.net_images.tar).
 
 ## What is this?
 
